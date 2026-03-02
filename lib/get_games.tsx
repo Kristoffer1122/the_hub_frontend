@@ -4,7 +4,7 @@ interface Game {
     id: number;
     title: string;
     image_link: string;
-    utgivelsesdato: string;
+    release_date: string;
 }
 
 export default function GetGames() {
