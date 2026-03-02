@@ -6,22 +6,40 @@ import { useEffect, useState } from "react";
 export default function Home() {
     const [weeklyRecap, setWeeklyRecap] = useState<any>(null);
     const [loadingRecap, setLoadingRecap] = useState(false);
+    const [generating, setGenerating] = useState(false);
 
+    // Load cached recap on page load
     useEffect(() => {
-        fetchRecap();
+        loadCachedRecap();
     }, []);
 
-    const fetchRecap = () => {
+    const loadCachedRecap = () => {
         setLoadingRecap(true);
+        fetch('/api/get-recap')
+            .then(res => res.json())
+            .then(data => {
+                if (data.recap) {
+                    setWeeklyRecap(data);
+                }
+                setLoadingRecap(false);
+            })
+            .catch(err => {
+                console.error('Error fetching cached recap:', err);
+                setLoadingRecap(false);
+            });
+    };
+
+    const generateRecap = () => {
+        setGenerating(true);
         fetch('/api/weekly-recap')
             .then(res => res.json())
             .then(data => {
                 setWeeklyRecap(data);
-                setLoadingRecap(false);
+                setGenerating(false);
             })
             .catch(err => {
-                console.error('Error fetching recap:', err);
-                setLoadingRecap(false);
+                console.error('Error generating recap:', err);
+                setGenerating(false);
             });
     };
 
@@ -57,24 +75,31 @@ export default function Home() {
                                 <h2 className="text-4xl font-bold">Ukeoversikt</h2>
                             </div>
                             <button
-                                onClick={fetchRecap}
-                                disabled={loadingRecap}
+                                onClick={generateRecap}
+                                disabled={generating}
                                 className="px-4 py-2 bg-purple-600 rounded-lg font-semibold hover:bg-purple-500 transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
-                                {loadingRecap ? (
+                                {generating ? (
                                     <>
                                         <span className="animate-spin">⏳</span>
                                         Genererer...
                                     </>
                                 ) : (
                                     <>
-                                        🔄 Oppdater
+                                        🔄 Generer ny
                                     </>
                                 )}
                             </button>
                         </div>
                         
-                        {loadingRecap && !weeklyRecap ? (
+                        {loadingRecap ? (
+                            <div className="flex items-center justify-center py-16">
+                                <div className="text-center">
+                                    <div className="text-4xl mb-4 animate-spin">⏳</div>
+                                    <p className="text-gray-400">Henter ukeoversikt...</p>
+                                </div>
+                            </div>
+                        ) : generating ? (
                             <div className="flex items-center justify-center py-16">
                                 <div className="text-center">
                                     <div className="text-4xl mb-4 animate-bounce">🤖</div>
@@ -84,6 +109,9 @@ export default function Home() {
                         ) : weeklyRecap?.recap ? (
                             <div className="prose prose-invert max-w-none">
                                 <p className="text-lg text-gray-200 whitespace-pre-wrap leading-relaxed">{weeklyRecap.recap}</p>
+                                {weeklyRecap.cached && (
+                                    <p className="text-xs text-gray-500 mt-4">Hentet fra cache • Generert: {new Date(weeklyRecap.generatedAt).toLocaleString('no-NO')}</p>
+                                )}
                             </div>
                         ) : weeklyRecap?.error ? (
                             <div className="text-red-400 py-8">
@@ -91,7 +119,7 @@ export default function Home() {
                             </div>
                         ) : (
                             <div className="text-gray-400 py-8 text-center">
-                                <p>Klikk "Oppdater" for å generere ukeoversikten</p>
+                                <p>Ingen ukeoversikt funnet. Klikk "Generer ny" for å lage en.</p>
                             </div>
                         )}
                     </div>
