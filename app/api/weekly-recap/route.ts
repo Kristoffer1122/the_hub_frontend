@@ -28,7 +28,7 @@ export async function GET() {
 
         // If no cached recap, generate from Azure AI
         const { DefaultAzureCredential } = require('@azure/identity');
-        
+
         const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
         const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
 
@@ -44,7 +44,6 @@ export async function GET() {
         - Key highlights of the week
         - Important tasks completed
         - Upcoming goals for next week
-        - Motivational message
         
         Keep it concise and engaging (max 200 words).`;
 
@@ -77,7 +76,7 @@ export async function GET() {
         }
 
         const data = await response.json();
-        
+
         // Extract text from the message output
         const messageOutput = data.output?.find((item: any) => item.type === 'message');
         const textContent = messageOutput?.content?.find((c: any) => c.type === 'output_text');
