@@ -4,7 +4,7 @@ export async function POST(
 ) {
     const { id } = params;
     const body = await request.json();
-    
+
     const response = await fetch(`http://localhost:7878/games/${id}`, {
         method: "POST",
         headers: {
