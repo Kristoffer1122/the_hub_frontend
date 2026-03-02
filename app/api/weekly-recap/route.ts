@@ -2,6 +2,31 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     try {
+        const currentDate = new Date();
+        const weekNumber = getWeekNumber(currentDate);
+        const year = currentDate.getFullYear();
+
+        // First, check if we have a cached recap in the database
+        try {
+            const cachedResponse = await fetch(`http://localhost:7878/recap/${weekNumber}/${year}`);
+            if (cachedResponse.ok) {
+                const cachedData = await cachedResponse.json();
+                if (cachedData) {
+                    console.log('Using cached recap from database');
+                    return NextResponse.json({
+                        recap: cachedData.recap,
+                        week: cachedData.week_number,
+                        year: cachedData.year,
+                        generatedAt: cachedData.generated_at,
+                        cached: true
+                    });
+                }
+            }
+        } catch (e) {
+            console.log('No cached recap found, generating new one...');
+        }
+
+        // If no cached recap, generate from Azure AI
         const { DefaultAzureCredential } = require('@azure/identity');
         
         const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
@@ -14,10 +39,7 @@ export async function GET() {
             );
         }
 
-        const currentDate = new Date();
-        const weekNumber = getWeekNumber(currentDate);
-
-        const prompt = `Generate a weekly recap for week ${weekNumber} of ${currentDate.getFullYear()}. 
+        const prompt = `Generate a weekly recap for week ${weekNumber} of ${year}. 
         Include:
         - Key highlights of the week
         - Important tasks completed
@@ -61,11 +83,28 @@ export async function GET() {
         const textContent = messageOutput?.content?.find((c: any) => c.type === 'output_text');
         const recap = textContent?.text || 'No recap generated';
 
+        // Save to database for caching
+        try {
+            await fetch('http://localhost:7878/saverecap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    week_number: weekNumber,
+                    year: year,
+                    recap: recap
+                })
+            });
+            console.log('Recap saved to database');
+        } catch (e) {
+            console.error('Failed to save recap to database:', e);
+        }
+
         return NextResponse.json({
             recap,
             week: weekNumber,
-            year: currentDate.getFullYear(),
-            generatedAt: currentDate.toISOString()
+            year: year,
+            generatedAt: currentDate.toISOString(),
+            cached: false
         });
     } catch (error) {
         console.error('Error generating weekly recap:', error);
