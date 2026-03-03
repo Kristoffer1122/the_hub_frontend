@@ -39,13 +39,8 @@ export async function GET() {
             );
         }
 
-        const prompt = `Generate a weekly recap for week ${weekNumber} of ${year}. 
-        Include:
-        - Key highlights of the week
-        - Important tasks completed
-        - Upcoming goals for next week
-        
-        Keep it concise and engaging (max 200 words).`;
+        // Just send the current date - the agent already has instructions to generate weekly recap from yearplan
+        const input = `Dagens dato er ${currentDate.toLocaleDateString('no-NO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Uke ${weekNumber}, ${year}.`;
 
         // Get Azure AD token
         const credential = new DefaultAzureCredential();
@@ -61,7 +56,7 @@ export async function GET() {
                 'Authorization': `Bearer ${tokenResponse.token}`
             },
             body: JSON.stringify({
-                input: prompt
+                input: input
             })
         });
 
