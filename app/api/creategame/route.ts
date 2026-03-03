@@ -1,8 +1,10 @@
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:7878';
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         
-        const response = await fetch("http://localhost:7878/creategame", {
+        const response = await fetch(`${BACKEND_URL}/creategame`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
