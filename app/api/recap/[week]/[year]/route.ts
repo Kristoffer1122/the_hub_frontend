@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:7878';
+
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ week: string; year: string }> }
@@ -7,7 +9,7 @@ export async function GET(
     const { week, year } = await params;
     
     try {
-        const response = await fetch(`http://localhost:7878/recap/${week}/${year}`);
+        const response = await fetch(`${BACKEND_URL}/recap/${week}/${year}`);
         
         if (response.status === 404) {
             return NextResponse.json({ found: false }, { status: 200 });

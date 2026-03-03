@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:7878';
+
 export async function GET() {
     try {
         const currentDate = new Date();
@@ -8,7 +10,7 @@ export async function GET() {
 
         // First, check if we have a cached recap in the database
         try {
-            const cachedResponse = await fetch(`http://localhost:7878/recap/${weekNumber}/${year}`);
+            const cachedResponse = await fetch(`${BACKEND_URL}/recap/${weekNumber}/${year}`);
             if (cachedResponse.ok) {
                 const cachedData = await cachedResponse.json();
                 if (cachedData) {
@@ -79,7 +81,7 @@ export async function GET() {
 
         // Save to database for caching
         try {
-            await fetch('http://localhost:7878/saverecap', {
+            await fetch(`${BACKEND_URL}/saverecap`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

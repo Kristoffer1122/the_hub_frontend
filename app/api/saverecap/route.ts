@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:7878';
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         
-        const response = await fetch('http://localhost:7878/saverecap', {
+        const response = await fetch(`${BACKEND_URL}/saverecap`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)

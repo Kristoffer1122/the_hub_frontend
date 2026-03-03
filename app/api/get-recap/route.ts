@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:7878';
+
 export async function GET() {
     try {
         // Get latest recap from database (highest id)
-        const response = await fetch('http://localhost:7878/recap/latest');
+        const response = await fetch(`${BACKEND_URL}/recap/latest`);
         
         if (response.ok) {
             const data = await response.json();
