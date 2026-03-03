@@ -1,10 +1,12 @@
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:7878';
+
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
+    const { id } = await params;
     
-    const response = await fetch(`http://localhost:7878/deletegame/${id}`, {
+    const response = await fetch(`${BACKEND_URL}/deletegame/${id}`, {
         method: "POST",
     });
 
