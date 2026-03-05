@@ -55,3 +55,6 @@ docker run -p 3000:3000 \
 | `BACKEND_URL` | Rust backend API URL | `http://localhost:7878` |
 | `AZURE_OPENAI_ENDPOINT` | Azure AI Foundry endpoint | - |
 | `AZURE_OPENAI_DEPLOYMENT_NAME` | AI agent name | `scheduler` |
+
+### This does not save any of your Personal data
+https://www.shera.no/privacy-policy
