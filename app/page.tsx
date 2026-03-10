@@ -3,8 +3,17 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+interface WeeklyRecapData {
+    recap?: string;
+    week?: number;
+    year?: number;
+    generatedAt?: string;
+    cached?: boolean;
+    error?: string;
+}
+
 export default function Home() {
-    const [weeklyRecap, setWeeklyRecap] = useState<any>(null);
+    const [weeklyRecap, setWeeklyRecap] = useState<WeeklyRecapData | null>(null);
     const [loadingRecap, setLoadingRecap] = useState(false);
     const [generating, setGenerating] = useState(false);
 
@@ -15,7 +24,7 @@ export default function Home() {
 
     const loadCachedRecap = () => {
         setLoadingRecap(true);
-        fetch('/api/get-recap')
+        fetch('/api/weekly-recap')
             .then(res => res.json())
             .then(data => {
                 if (data.recap) {
@@ -91,7 +100,7 @@ export default function Home() {
                                 )}
                             </button>
                         </div>
-                        
+
                         {loadingRecap ? (
                             <div className="flex items-center justify-center py-16">
                                 <div className="text-center">
@@ -109,7 +118,7 @@ export default function Home() {
                         ) : weeklyRecap?.recap ? (
                             <div className="prose prose-invert max-w-none">
                                 <p className="text-lg text-gray-200 whitespace-pre-wrap leading-relaxed">{weeklyRecap.recap}</p>
-                                {weeklyRecap.cached && (
+                                {weeklyRecap.cached && weeklyRecap.generatedAt && (
                                     <p className="text-xs text-gray-500 mt-4">Hentet fra cache • Generert: {new Date(weeklyRecap.generatedAt).toLocaleString('no-NO')}</p>
                                 )}
                             </div>

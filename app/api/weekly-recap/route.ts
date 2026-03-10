@@ -8,100 +8,64 @@ export async function GET() {
         const weekNumber = getWeekNumber(currentDate);
         const year = currentDate.getFullYear();
 
-        // First, check if we have a cached recap in the database
-        try {
-            const cachedResponse = await fetch(`${BACKEND_URL}/recap/${weekNumber}/${year}`);
-            if (cachedResponse.ok) {
-                const cachedData = await cachedResponse.json();
-                if (cachedData) {
-                    console.log('Using cached recap from database');
-                    return NextResponse.json({
-                        recap: cachedData.recap,
-                        week: cachedData.week_number,
-                        year: cachedData.year,
-                        generatedAt: cachedData.generated_at,
-                        cached: true
-                    });
-                }
+        // Get cached recap from the database
+        const cachedResponse = await fetch(`${BACKEND_URL}/recap/${weekNumber}/${year}`);
+        if (cachedResponse.ok) {
+            const cachedData = await cachedResponse.json();
+            if (cachedData) {
+                return NextResponse.json({
+                    recap: cachedData.recap,
+                    week: cachedData.week_number,
+                    year: cachedData.year,
+                    generatedAt: cachedData.generated_at,
+                    cached: true
+                });
             }
-        } catch (e) {
-            console.log('No cached recap found, generating new one...');
         }
 
-        // If no cached recap, generate from Azure AI
-        const { DefaultAzureCredential } = require('@azure/identity');
+        // No cached recap found
+        return NextResponse.json(
+            { error: 'No recap available for this week. Generate one first.' },
+            { status: 404 }
+        );
+    } catch (error) {
+        console.error('Error fetching weekly recap:', error);
+        return NextResponse.json(
+            { error: `Failed to fetch weekly recap: ${error}` },
+            { status: 500 }
+        );
+    }
+}
 
-        const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
-        const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const { azure_token } = body;
 
-        if (!endpoint || !deploymentName) {
+        if (!azure_token) {
             return NextResponse.json(
-                { error: 'Missing Azure AI configuration. Please set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_DEPLOYMENT_NAME in .env.local' },
-                { status: 500 }
+                { error: 'Missing azure_token in request body' },
+                { status: 400 }
             );
         }
 
-        // Just send the current date - the agent already has instructions to generate weekly recap from yearplan
-        const input = `Dagens dato er ${currentDate.toLocaleDateString('no-NO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Uke ${weekNumber}, ${year}.`;
-
-        // Get Azure AD token
-        const credential = new DefaultAzureCredential();
-        const tokenResponse = await credential.getToken("https://ai.azure.com/.default");
-
-        // Use the published Responses API endpoint
-        const url = `${endpoint}/applications/${deploymentName}/protocols/openai/responses?api-version=2025-11-15-preview`;
-
-        const response = await fetch(url, {
+        // Call backend to generate recap
+        const response = await fetch(`${BACKEND_URL}/generate-recap`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${tokenResponse.token}`
-            },
-            body: JSON.stringify({
-                input: input
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ azure_token })
         });
 
+        const result = await response.text();
+
         if (!response.ok) {
-            const errorData = await response.text();
-            console.error('Azure OpenAI API error:', errorData);
-            console.error('Request URL:', url);
             return NextResponse.json(
-                { error: `Failed to generate recap from Azure AI: ${errorData}` },
+                { error: result },
                 { status: response.status }
             );
         }
 
-        const data = await response.json();
-
-        // Extract text from the message output
-        const messageOutput = data.output?.find((item: any) => item.type === 'message');
-        const textContent = messageOutput?.content?.find((c: any) => c.type === 'output_text');
-        const recap = textContent?.text || 'No recap generated';
-
-        // Save to database for caching
-        try {
-            await fetch(`${BACKEND_URL}/saverecap`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    week_number: weekNumber,
-                    year: year,
-                    recap: recap
-                })
-            });
-            console.log('Recap saved to database');
-        } catch (e) {
-            console.error('Failed to save recap to database:', e);
-        }
-
-        return NextResponse.json({
-            recap,
-            week: weekNumber,
-            year: year,
-            generatedAt: currentDate.toISOString(),
-            cached: false
-        });
+        return NextResponse.json({ message: result });
     } catch (error) {
         console.error('Error generating weekly recap:', error);
         return NextResponse.json(
