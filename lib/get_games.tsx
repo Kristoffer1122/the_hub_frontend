@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 interface Game {
     id: number;
     title: string;
+    genre: string;
     image_link: string;
     release_date: string;
 }
