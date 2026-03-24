@@ -2,11 +2,21 @@
 
 Next.js frontend for The Hub application.
 
-## Prerequisites
+## Running (Recommended)
+
+Run everything from the monorepo using Docker Compose:
+
+```bash
+git clone --recurse-submodules https://github.com/Kristoffer1122/the_hub.git
+cd the_hub
+docker compose up --build
+```
+
+See the [monorepo README](https://github.com/Kristoffer1122/the_hub) for full instructions.
+
+## Prerequisites (local dev only)
 
 - Node.js 20+
-- Docker (for containerized deployment)
-- Terraform (for infrastructure management)
 - Azure CLI (for AI features)
 
 ## Azure Authentication
@@ -17,8 +27,6 @@ The weekly recap feature uses Azure AI Foundry. You must authenticate with Azure
 az login
 ```
 
-This is required for the AI-powered weekly recap generation to work.
-
 ## Development
 
 ```bash
@@ -27,26 +35,6 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser.
-
-## Docker Deployment
-
-Build and run with Terraform:
-
-```bash
-terraform init
-terraform apply
-```
-
-Or manually with Docker:
-
-```bash
-docker build -t nextjs_frontend .
-docker run -p 3000:3000 \
-  -e BACKEND_URL=http://host.docker.internal:7878 \
-  -e AZURE_OPENAI_ENDPOINT=your_endpoint \
-  -e AZURE_OPENAI_DEPLOYMENT_NAME=scheduler \
-  nextjs_frontend
-```
 
 ## Environment Variables
 
