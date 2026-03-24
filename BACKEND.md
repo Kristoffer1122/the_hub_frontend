@@ -1,12 +1,24 @@
 # Rust Backend
 
-This frontend connects to the Rust backend API for game library data.
+This frontend connects to the Rust backend API.
 
 ## Repository
 
-- **Repo:** [Kristoffer1122/rust_webserver](https://github.com/Kristoffer1122/rust_webserver)
-- **Language:** Rust (Axum + Diesel + MySQL)
+- **Repo:** [Kristoffer1122/the_hub_backend](https://github.com/Kristoffer1122/the_hub_backend)
+- **Language:** Rust (Axum + Diesel + MariaDB)
 - **Default Port:** `7878`
+
+## Running Together
+
+The easiest way to run both services is via Docker Compose from the monorepo root:
+
+```bash
+git clone --recurse-submodules https://github.com/Kristoffer1122/the_hub.git
+cd the_hub
+docker compose up --build
+```
+
+See the [monorepo README](https://github.com/Kristoffer1122/the_hub) for full instructions.
 
 ## Connection
 
@@ -16,16 +28,6 @@ The frontend communicates with the backend via the `BACKEND_URL` environment var
 # Default (local development)
 BACKEND_URL=http://localhost:7878
 
-# Docker (container-to-host)
-BACKEND_URL=http://host.docker.internal:7878
+# Docker Compose (service-to-service)
+BACKEND_URL=http://backend:7878
 ```
-
-## Setup
-
-1. Clone the backend:
-   ```bash
-git clone https://github.com/Kristoffer1122/rust_webserver.git
-   ```
-2. Follow backend setup instructions in that repo
-3. Start the backend on port `7878`
-4. Start this frontend with `npm run dev`
